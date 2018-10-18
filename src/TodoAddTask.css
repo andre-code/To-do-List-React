@@ -1,0 +1,16 @@
+.addTask {
+  margin: auto;
+  max-width: 500px;
+  padding-top: 30px;
+}
+.addTask div {
+  float: left
+}
+.addTask input {
+  width: 400px;
+  height: 20px;
+}
+.addTask button {
+  background-color: #1a7888;
+  color: #fff;
+}
