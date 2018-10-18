@@ -4,26 +4,23 @@ import './TodoTask.css';
 class TodoTask extends Component {
   constructor(props) {
     super(props);
-    this.state = {}
+    this.state = {
+    }
   }
-  deleteFunction( tasktoDelete ) {
-
+  callRemoveFunction = () => {
+    this.props.deleteFunction( this.props.task );
   }
-  upFunction( tasktoUP ) {
-    
-  }
-  downFunction( tasktoDown ) {
-        
+  callTaskDone = ( e ) => {
+    this.props.task.isDone = e.target.checked;
+    this.props.updateFunction( this.props.task );
   }
   render() {
     return (
       <div className="task">
-        <div> <input type="checkbox" name="isDone" checked={this.props.task.isdone} /></div>
+        <div> <input type="checkbox" name="isDone" checked={this.props.task.isdone} onChange={this.callTaskDone} /></div>
         <div>{this.props.task.task}</div>
         <div>
-          <button>Delete</button>
-          <button>Up</button>
-          <button>Down</button>
+          <button onClick={this.callRemoveFunction}>Delete</button>
         </div>
       </div>
     );

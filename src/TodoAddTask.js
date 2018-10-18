@@ -11,12 +11,14 @@ class TodoAddTask extends Component {
   }
   callAddTask = () => {
     var newTask = {
+      id: this.props.lastId + 1,
       date: this.props.taskDate,
       task: this.state.taskText,
       isDone: false,
       position: this.props.lastPosition + 1
     }
     this.props.addTask( newTask );
+    document.getElementById("taskfield").value = '';
   }
   updateTextTask = (e) => {
     this.setState({taskText: e.target.value});
