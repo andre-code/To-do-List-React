@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import TodoTask from './TodoTask';
 import TodoAddTask from './TodoAddTask';
+import firebase from './firebase.js';
 import './TodoList.css';
-
 
 class TodoList extends Component {
   constructor(props) {
@@ -16,76 +16,69 @@ class TodoList extends Component {
     //this.orderTasks=this.orderTasks(this);
   }
   componentDidMount () {
-    var taskSaved = [{
-      id: 1,
-      date: '2018-10-17',
-      task: 'Finish React project',
-      isDone: false,
-      position: 2
-    },
-    {
-      id: 2,
-      date: '2018-10-17',
-      task: 'Wake Up',
-      isDone: false,
-      position: 1
-    },
-    {
-      id: 3,
-      date: '2018-10-17',
-      task: 'Sleep at 11pm!',
-      isDone: false,
-      position: 3
-    }];
-
-    this.setState({
-      taskDate: '2018-10-17',
-      tasks: taskSaved
+    const taskRefFirebase = firebase.database().ref('tasks'); 
+    let newStateTask = [];
+    taskRefFirebase.on('value', (snapshot) => {
+      let fTasks = snapshot.val();    
+      for (let ftask in fTasks) {
+        newStateTask.push({
+          id: ftask,
+          date: fTasks[ftask].date,
+          task: fTasks[ftask].task,
+          isDone: fTasks[ftask].isDone,
+          position: fTasks[ftask].position
+        });
+      }
+      this.setState({
+        tasks: newStateTask
+      });
     });
 
     this.setState({
-      tasks: this.orderTasks( taskSaved ),
-      lastPosition : this.getLastTaskPosition( taskSaved ),
-      lastId : this.getLastTaskId( taskSaved )
-    })
+      taskDate: '2018-10-17'
+    });
     
+    if(newStateTask.length > 0)
+      this.reloadTask(newStateTask); 
+  }
+  reloadTask =  newTask => {
+    this.setState({ tasks: newTask });
+    this.setState({
+      tasks: this.orderTasks( newTask ),
+      lastPosition : this.getLastTaskPosition( newTask ),
+      lastId : this.getLastTaskId( newTask )
+    })
   }
   addTask = newTask => { 
-    var newTasks = this.state.tasks.slice();    
-    newTasks.push( newTask );   
-    this.setState({tasks: newTasks});
-    this.setState({
-      tasks: this.orderTasks( newTasks ),
-      lastPosition : this.getLastTaskPosition( newTasks ),
-      lastId : this.getLastTaskId( newTasks )
-    })
+    var newTasks = this.state.tasks.slice();
+    const taskRefFirebase = firebase.database().ref('tasks'); 
+    const taskFirebase = {
+      date: newTask.date,
+      task: newTask.task,
+      isDone: newTask.isDone,
+      position: newTask.position
+    }
+    taskRefFirebase.push(taskFirebase);
+    newTasks.push( newTask ); 
+    if(newTasks.length > 0)
+      this.reloadTask(newTasks);
   }
   removeTask = taskToRemove => { 
+    const taskRefFirebase = firebase.database().ref(`/tasks/${taskToRemove.id}`);
+    taskRefFirebase.remove();
     var newTaskArray = this.state.tasks.filter(function(taskItem){
       return taskItem !== taskToRemove
     });
-    this.setState({
-      tasks: newTaskArray
-    });
-    this.setState({
-      tasks: this.orderTasks( newTaskArray ),
-      lastPosition : this.getLastTaskPosition( newTaskArray ),
-      lastId : this.getLastTaskId( newTaskArray )
-    })
+    if(newTaskArray.length > 0)
+      this.reloadTask(newTaskArray);
   }
 
   updateTask = task => { 
     const objIndex = this.state.tasks.findIndex(obj => obj.id === task.id); 
-    var newarray =  this.state.tasks;
-    newarray[objIndex]= task;
-    this.setState({
-      tasks: newarray
-    });
-    this.setState({
-      tasks: this.orderTasks( newarray ),
-      lastPosition : this.getLastTaskPosition( newarray ),
-      lastId : this.getLastTaskId( newarray )
-    });
+    var newArray =  this.state.tasks;
+    newArray[objIndex]= task;
+    if(newArray.length > 0)
+      this.reloadTask(newArray);
   }
 
   getLastTaskPosition = ( arrayToGetLastTask ) => {
