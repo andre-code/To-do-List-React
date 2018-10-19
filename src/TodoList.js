@@ -62,7 +62,6 @@ class TodoList extends Component {
     const taskRefFirebase = firebase.database().ref(`/tasks/${this.state.taskDate}/${values.id}/${values.var}`);
     taskRefFirebase.set(values.val);
   }
-
   upTask = position => {
     var taskBefore = [];
     var allTasks = this.state.tasks;
@@ -75,7 +74,6 @@ class TodoList extends Component {
       taskBefore = allTasks[task];
     }
   }
-
   getLastTaskPosition = ( arrayToGetLastTask ) => {
     return arrayToGetLastTask.reduce((max, b) => Math.max(max, b.position), arrayToGetLastTask[0].position);
   }
@@ -86,7 +84,6 @@ class TodoList extends Component {
     var orderedTask = arrayToOrder.sort((a, b) => parseFloat(a.position) - parseFloat(b.position));
     return orderedTask;
   }
-
   render() {
     return( 
       <section>
