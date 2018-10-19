@@ -9,16 +9,17 @@ class TodoAddTask extends Component {
       taskText: ''
     }
   }
-  callAddTask = () => {
-    var newTask = {
-      id: this.props.lastId + 1,
-      date: this.props.taskDate,
-      task: this.state.taskText,
-      isDone: false,
-      position: this.props.lastPosition + 1
+  callAddTask = (e) => {
+    if (e.key === 'Enter') {
+      var newTask = {
+        date: this.props.taskDate,
+        task: this.state.taskText,
+        isDone: false,
+        position: this.props.lastPosition + 1
+      }
+      this.props.addTask( newTask );
+      document.getElementById("taskfield").value = '';
     }
-    this.props.addTask( newTask );
-    document.getElementById("taskfield").value = '';
   }
   updateTextTask = (e) => {
     this.setState({taskText: e.target.value});
@@ -28,11 +29,16 @@ class TodoAddTask extends Component {
       <div className="addTask">
         <div>  
           <label htmlFor="taskfield">
-            <input name="taksfield" type="text" className="taskfield" id="taskfield" onChange={this.updateTextTask} />
+            <input
+              name="taksfield" 
+              type="text" 
+              className="taskfield" 
+              id="taskfield" 
+              onChange={this.updateTextTask} 
+              onKeyPress={this.callAddTask} 
+              placeholder="Write here your task and press Enter to save"
+            />
           </label> 
-        </div>
-        <div>
-          <button onClick={this.callAddTask} >Add Task</button>
         </div>
       </div>
     );

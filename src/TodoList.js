@@ -10,16 +10,16 @@ class TodoList extends Component {
     this.state = {
       taskDate: '',
       tasks: [],
-      lastPosition: 0,
-      lastId: 0
+      lastPosition: 0
     }
-    //this.orderTasks=this.orderTasks(this);
   }
   componentDidMount () {
-    const taskRefFirebase = firebase.database().ref('tasks'); 
-    let newStateTask = [];
-    taskRefFirebase.on('value', (snapshot) => {
-      let fTasks = snapshot.val();    
+    this.setState({ taskDate: '2018-10-19' }); // then we will get the date by currentday to have a todo-list per day
+    const taskRefFirebase = firebase.database().ref(`/tasks/${this.state.taskDate}`);     
+    taskRefFirebase.on('value', (snapshot) => {   
+      let newStateTask = [];
+      let fTasks = snapshot.val();
+      fTasks = fTasks[this.state.taskDate];
       for (let ftask in fTasks) {
         newStateTask.push({
           id: ftask,
@@ -29,29 +29,21 @@ class TodoList extends Component {
           position: fTasks[ftask].position
         });
       }
-      this.setState({
-        tasks: newStateTask
-      });
-    });
-
-    this.setState({
-      taskDate: '2018-10-17'
-    });
-    
-    if(newStateTask.length > 0)
-      this.reloadTask(newStateTask); 
+      if(newStateTask.length > 0){
+        this.reloadTask(newStateTask); 
+      }
+    });  
   }
   reloadTask =  newTask => {
     this.setState({ tasks: newTask });
     this.setState({
       tasks: this.orderTasks( newTask ),
-      lastPosition : this.getLastTaskPosition( newTask ),
-      lastId : this.getLastTaskId( newTask )
+      lastPosition : this.getLastTaskPosition( newTask )
     })
   }
+
   addTask = newTask => { 
-    var newTasks = this.state.tasks.slice();
-    const taskRefFirebase = firebase.database().ref('tasks'); 
+    const taskRefFirebase = firebase.database().ref(`/tasks/${this.state.taskDate}`); 
     const taskFirebase = {
       date: newTask.date,
       task: newTask.task,
@@ -59,26 +51,29 @@ class TodoList extends Component {
       position: newTask.position
     }
     taskRefFirebase.push(taskFirebase);
-    newTasks.push( newTask ); 
-    if(newTasks.length > 0)
-      this.reloadTask(newTasks);
   }
   removeTask = taskToRemove => { 
-    const taskRefFirebase = firebase.database().ref(`/tasks/${taskToRemove.id}`);
+    const taskRefFirebase = firebase.database().ref(`/tasks/${this.state.taskDate}/${taskToRemove.id}`);
     taskRefFirebase.remove();
-    var newTaskArray = this.state.tasks.filter(function(taskItem){
-      return taskItem !== taskToRemove
-    });
-    if(newTaskArray.length > 0)
-      this.reloadTask(newTaskArray);
   }
 
-  updateTask = task => { 
-    const objIndex = this.state.tasks.findIndex(obj => obj.id === task.id); 
-    var newArray =  this.state.tasks;
-    newArray[objIndex]= task;
-    if(newArray.length > 0)
-      this.reloadTask(newArray);
+  updateTask = ( values ) => { 
+    console.log(values);
+    const taskRefFirebase = firebase.database().ref(`/tasks/${this.state.taskDate}/${values.id}/${values.var}`);
+    taskRefFirebase.set(values.val);
+  }
+
+  upTask = position => {
+    var taskBefore = [];
+    var allTasks = this.state.tasks;
+    
+    for( let task in  allTasks){
+      if( allTasks[task].position === position && Object.keys(taskBefore).length > 0 ){
+        this.updateTask({id: allTasks[task].id, var:'position', val: taskBefore.position});
+        this.updateTask({id: taskBefore.id, var:'position', val: position});
+      }
+      taskBefore = allTasks[task];
+    }
   }
 
   getLastTaskPosition = ( arrayToGetLastTask ) => {
@@ -96,8 +91,8 @@ class TodoList extends Component {
     return( 
       <section>
         <h1>{this.state.taskDate}</h1>
-        { this.state.tasks.map( task => <TodoTask key={task.position} task={task} deleteFunction={this.removeTask} updateFunction={this.updateTask} /> )}    
-        <TodoAddTask addTask={this.addTask} lastPosition={this.state.lastPosition} lastId={this.state.lastId} taskDate={this.state.taskDate} />
+        { this.state.tasks.map( task => <TodoTask key={task.id} task={task} deleteFunction={this.removeTask} updateFunction={this.updateTask} upFunction={this.upTask} /> )}    
+        <TodoAddTask addTask={this.addTask} lastPosition={this.state.lastPosition} taskDate={this.state.taskDate} />
       </section>
     )
   }
