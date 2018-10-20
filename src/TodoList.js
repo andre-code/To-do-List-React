@@ -19,26 +19,29 @@ class TodoList extends Component {
     taskRefFirebase.on('value', (snapshot) => {   
       let newStateTask = [];
       let fTasks = snapshot.val();
-      fTasks = fTasks[this.state.taskDate];
-      for (let ftask in fTasks) {
-        newStateTask.push({
-          id: ftask,
-          date: fTasks[ftask].date,
-          task: fTasks[ftask].task,
-          isDone: fTasks[ftask].isDone,
-          position: fTasks[ftask].position
-        });
-      }
-      if(newStateTask.length > 0){
-        this.reloadTask(newStateTask); 
+
+      if ( fTasks ) {
+        fTasks = fTasks[this.state.taskDate];
+        for (let ftask in fTasks) {
+          newStateTask.push({
+            id: ftask,
+            date: fTasks[ftask].date,
+            task: fTasks[ftask].task,
+            isDone: fTasks[ftask].isDone,
+            position: fTasks[ftask].position
+          });
+        }
+        if(newStateTask.length > 0){
+          this.reloadTask(newStateTask); 
+        }
       }
     });  
   }
-  reloadTask =  newTask => {
-    this.setState({ tasks: newTask });
+  reloadTask =  newTasks => {
+    this.setState({ tasks: newTasks });
     this.setState({
-      tasks: this.orderTasks( newTask ),
-      lastPosition : this.getLastTaskPosition( newTask )
+      tasks: this.orderTasks( newTasks ),
+      lastPosition : this.getLastTaskPosition( newTasks )
     })
   }
 
@@ -57,8 +60,7 @@ class TodoList extends Component {
     taskRefFirebase.remove();
   }
 
-  updateTask = ( values ) => { 
-    console.log(values);
+  updateTask = ( values ) => {
     const taskRefFirebase = firebase.database().ref(`/tasks/${this.state.taskDate}/${values.id}/${values.var}`);
     taskRefFirebase.set(values.val);
   }
@@ -87,7 +89,8 @@ class TodoList extends Component {
   render() {
     return( 
       <section>
-        <h1>{this.state.taskDate}</h1>
+        <h1> To-do List </h1>
+        <p>{this.state.taskDate} </p>
         { this.state.tasks.map( task => <TodoTask key={task.id} task={task} deleteFunction={this.removeTask} updateFunction={this.updateTask} upFunction={this.upTask} /> )}    
         <TodoAddTask addTask={this.addTask} lastPosition={this.state.lastPosition} taskDate={this.state.taskDate} />
       </section>
